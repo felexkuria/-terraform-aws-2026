@@ -30,3 +30,12 @@ variable "sg_name" {
     type = string
     default = "web_server_sg" 
 }
+data "aws_vpc" "default" {
+  default = true
+}
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
