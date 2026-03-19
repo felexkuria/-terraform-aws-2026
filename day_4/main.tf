@@ -57,12 +57,12 @@ resource "aws_autoscaling_group" "web_server_asg" {
 
   vpc_zone_identifier = data.aws_subnets.default.ids
 
-  min_size = 2
-  max_size = 10
+  min_size = 1
+  max_size = 3
 
   tag {
     key                 = "Name"
-    value               = "terraform-asg-example"
+    value               = "terraform-asg-server"
     propagate_at_launch = true
   }
 }
