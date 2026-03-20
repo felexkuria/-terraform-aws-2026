@@ -2,18 +2,20 @@ provider "aws" {
   region=var.region
 }
 
-resource "aws_instance" "web_server" {
-ami = data.aws_ami.ubuntu.id
-instance_type=var.instance_type
-vpc_security_group_ids = [aws_security_group.web_server_sg.id]
-tags = {Name=var.name}
-user_data = <<-EOF
-  #!/bin/bash
-  echo "Hello World" > index.html
-  nohup busybox httpd -f -p ${var.port} &
-EOF
-  user_data_replace_on_change = true
-}
+# resource "aws_instance" "web_server" {
+# ami = data.aws_ami.ubuntu.id
+# instance_type=var.instance_type
+# vpc_security_group_ids = [aws_security_group.web_server_sg.id]
+# tags = {Name=var.name}
+# user_data = <<-EOF
+#   #!/bin/bash
+#   sudo apt-get update -y
+#   sudo apt-get install -y busybox
+#   echo "Hello World" > index.html
+#   nohup busybox httpd -f -p ${var.port} &
+# EOF
+#   user_data_replace_on_change = true
+# }
 
 resource "aws_security_group" "web_server_sg" {
     name = var.sg_name
@@ -23,6 +25,12 @@ resource "aws_security_group" "web_server_sg" {
         protocol = var.protocol
         cidr_blocks = var.cidr_blocks
     }
+    egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 resource "aws_launch_template" "web_server_lt" {
   name_prefix   = "terraform-lt-"
@@ -34,6 +42,8 @@ resource "aws_launch_template" "web_server_lt" {
 
   user_data = base64encode(<<-EOF
               #!/bin/bash
+              sudo apt-get update -y
+              sudo apt-get install -y busybox
               echo "Hello World" > index.html
               nohup busybox httpd -f -p ${var.port} &
               EOF
@@ -58,7 +68,7 @@ resource "aws_autoscaling_group" "web_server_asg" {
   vpc_zone_identifier = data.aws_subnets.default.ids
 
   min_size = 1
-  max_size = 3
+  max_size = 2
 
   tag {
     key                 = "Name"
