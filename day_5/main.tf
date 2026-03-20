@@ -1,33 +1,27 @@
-provider "aws" {
-  region = "us-east-1"
-}
+
 provider "aws" {
   region=var.region
 }
 
-# resource "aws_instance" "web_server" {
-# ami = data.aws_ami.ubuntu.id
-# instance_type=var.instance_type
-# vpc_security_group_ids = [aws_security_group.web_server_sg.id]
-# tags = {Name=var.name}
-# user_data = <<-EOF
-#   #!/bin/bash
-#   sudo apt-get update -y
-#   sudo apt-get install -y busybox
-#   echo "Hello World" > index.html
-#   nohup busybox httpd -f -p ${var.port} &
-# EOF
-#   user_data_replace_on_change = true
-# }
+
 
 resource "aws_security_group" "web_server_sg" {
     name = var.sg_name
-    ingress {
-        from_port =var.port
-        to_port = var.port
-        protocol = var.protocol
-        cidr_blocks = var.cidr_blocks
-    }
+   # Rule 1: Allow the World to talk to the ALB on Port 80
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Rule 2: Allow the ALB to talk to the instances on 8080
+  ingress {
+    from_port   = var.port
+    to_port     = var.port
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
     egress {
     from_port   = 0
     to_port     = 0
@@ -84,7 +78,7 @@ resource "aws_lb" "web_server_alb" {
   subnets            = data.aws_subnets.default.ids
 }
 resource "aws_lb_listener" "http" {
-  load_balancer_arn = aws_lb.example.arn
+  load_balancer_arn = aws_lb.web_server_alb.arn
   port              = 80
   protocol          = "HTTP"
 
