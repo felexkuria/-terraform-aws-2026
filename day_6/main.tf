@@ -248,3 +248,12 @@ resource "aws_security_group" "web_server_sg" {
 
   
 }
+terraform {
+  backend "s3" {
+    bucket="terraform-state-bucket-2026-felexirunguvault"
+    key="global/s3/terraform-state-bucket-2026-felexirunguvault/terraform.tfstate"
+    region="us-east-1"
+    use_lockfile=true
+    lock_table="terraform-state-lock-table-2026-felexirunguvault"
+  }
+}
