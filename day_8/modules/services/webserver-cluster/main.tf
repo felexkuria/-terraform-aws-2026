@@ -63,8 +63,16 @@ resource "aws_autoscaling_group" "web_server_asg" {
 
   vpc_zone_identifier = data.aws_subnets.default.ids
 
-  min_size = 1
-  max_size = 2
+  min_size = var.min_size
+  max_size = var.max_size
+
+  # Auto-replace instances when user_data or the Launch Template changes
+  instance_refresh {
+    strategy = "Rolling"
+    preferences {
+      min_healthy_percentage = 60
+    }
+  }
 
   tag {
     key                 = "Name"
