@@ -23,3 +23,8 @@ variable "protocol" {
     default = "tcp"
   
 }
+variable "cidr_blocks" {
+    type = list(string)
+    default = ["0.0.0.0/0"]
+  
+}   

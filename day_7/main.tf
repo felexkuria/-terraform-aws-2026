@@ -17,7 +17,7 @@ resource "aws_instance" "example" {
     tags = {
         Name = var.instance_name
     }
-    vpc_security_group_ids = [aws_security_group.web_server_sg.id]
+    vpc_security_group_ids = [aws_security_group.example_sg.id]
     user_data = <<-EOF
     #!/bin/bash
     echo "${var.html_content}" > index.html
@@ -33,13 +33,13 @@ resource "aws_security_group" "example_sg" {
         from_port   = var.port
         to_port     = var.port
         protocol    = var.protocol
-        cidr_blocks = ["[IP_ADDRESS]"]
+        cidr_blocks =  ["0.0.0.0/0"]
     }
     
     egress {
         from_port   = 0
         to_port     = 0
         protocol    = "-1"
-        cidr_blocks = ["[IP_ADDRESS]"]
+        cidr_blocks = ["0.0.0.0/0"]
     }
 }
