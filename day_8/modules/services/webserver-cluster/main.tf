@@ -6,7 +6,8 @@ provider "aws" {
 
 
 resource "aws_security_group" "web_server_sg" {
-    name = var.sg_name
+   # DYNAMIC NAME: Prevents name collisions in the VPC
+  name = "${var.cluster_name}-alb-sg"
    # Rule 1: Allow the World to talk to the ALB on Port 80
   ingress {
     from_port   = 80
@@ -54,6 +55,7 @@ resource "aws_launch_template" "web_server_lt" {
 
 resource "aws_autoscaling_group" "web_server_asg" {
   # We now point to the "Launch Template" block
+  name                 = "${var.cluster_name}-asg"
   launch_template {
     id      = aws_launch_template.web_server_lt.id
     version = "$Latest" # Always use the most recent version of the template
@@ -66,12 +68,13 @@ resource "aws_autoscaling_group" "web_server_asg" {
 
   tag {
     key                 = "Name"
-    value               = "terraform-asg-server"
+    value               = "${var.cluster_name}-asg"
     propagate_at_launch = true
   }
 }
 resource "aws_lb" "web_server_alb" {
-  name               = "web-server-alb"
+  # DYNAMIC NAME: This will be "webservers-dev-alb" or "webservers-prod-alb"
+  name               = "${var.cluster_name}-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.web_server_sg.id]

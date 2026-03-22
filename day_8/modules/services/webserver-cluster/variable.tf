@@ -44,7 +44,7 @@ variable "cidr_blocks" {
   type = list(string)
   default = ["0.0.0.0/0"]
 }
-variable "instance_type" {
-  type = string
-  default = "t3.micro"
-}
+# variable "instance_type" {
+#   type = string
+#   default = "t3.micro"
+# }
