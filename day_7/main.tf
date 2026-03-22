@@ -33,13 +33,13 @@ resource "aws_security_group" "example_sg" {
         from_port   = var.port
         to_port     = var.port
         protocol    = var.protocol
-        cidr_blocks =  ["0.0.0.0/0"]
+        cidr_blocks =  var.cidr_blocks
     }
     
     egress {
         from_port   = 0
         to_port     = 0
         protocol    = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
+        cidr_blocks = var.cidr_blocks
     }
 }
