@@ -42,7 +42,7 @@ resource "aws_launch_template" "web_server_lt" {
               #!/bin/bash
               sudo apt-get update -y
               sudo apt-get install -y busybox
-              echo "Hello World" > index.html
+              echo "Hello World from ${var.cluster_name} in ${var.region}" > index.html
               nohup busybox httpd -f -p ${var.port} &
               EOF
   )
