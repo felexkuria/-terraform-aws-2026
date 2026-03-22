@@ -2,11 +2,11 @@
 
 ### Step 1: Creating the "Library" (The Directory Structure)
 
-In computer science, we don't just throw files everywhere. We use a logical hierarchy. We need to create two distinct worlds:
+In app development, we don't just throw files everywhere. We use a logical hierarchy. We need to create two distinct worlds:
 1.  **`modules/`**: The "Blueprint Vault." This is where the reusable code lives.
 2.  **`live/`**: The "Construction Site." This is where we actually deploy the code.
 
-To create this entire structure in one go on your MacBook, run this  command in your terminal:
+To create this entire structure in one go on your Unix-like system, run this  command in your terminal:
 
 ```bash
 # -p ensures it creates the parents and all subfolders at once
