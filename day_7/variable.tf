@@ -8,16 +8,16 @@ variable "html_content" {
     default = "<h1>Hello World</h1>"
   
 }
-variable "instance_name" {
-    type = string
-    default = "web_server"
-  
-}
 variable "instance_type" {
-    type = string
-    default = "t3.micro"
-  
+  type = map(string)
+  default = {
+    "default"    = "t2.micro" # Add this line!
+    "dev"        = "t2.micro"
+    "staging"    = "t2.micro"
+    "production" = "t2.micro"
+  }
 }
+
 variable "protocol" {
     type = string
     default = "tcp"
