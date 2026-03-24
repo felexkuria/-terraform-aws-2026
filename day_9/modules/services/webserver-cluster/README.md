@@ -36,25 +36,15 @@ Before versioning, you must avoid these three common mistakes that catch enginee
   - **The Fix**: Use `path.module` (e.g., `"${path.module}/user-data.sh"`).
 - **Gotcha 2: Inline Blocks vs Separate Resources**: Mixing `ingress` blocks and standalone `aws_security_group_rule` resources causes conflicts.
   - **The Rule**: Use separate resources in modules to allow callers to add their own custom rules.
-- **Gotcha 3: Output Dependencies**: Depending on a module output makes Terraform wait for the *entire* module.# 1. Stay in the root of your project
-# 2. Add and commit all Day 9 modular changes
-git add .
-git commit -m "Day 9: Verifying versioned modules"
-
-# 3. Create a STABLE tag for Production
-# (You can prefix it with 'day9-' to be extra clear)
-git tag -a "day9-v0.0.1" -m "Stable Version for Day 9"
-git push origin day9-v0.0.1
-
-# 4. Create a DEV tag for experimentation
-git tag -a "day9-v0.0.1-dev" -m "Dev version for Day 9"
-git push origin day9-v0.0.1-dev
+- **Gotcha 3: Output Dependencies**: Depending on a module output makes Terraform wait for the *entire* module.
   - **The Fix**: Expose specific, granular outputs to keep your dependency tree fast.
 
 ---
 
 ## 📦 Step 2: Put Your Module in the "Vault" (Versioning)
-Professional teams use Git tags to snapshot their modules. Here's how to do it based on your setup:
+Professional teams use Git tags to snapshot their modules. First, ensure you have your repository's HTTPS URL:
+
+![GitHub Clone UI](../../../resources/github_clone_ui.png)
 
 ### 2a. Versioning with an EXISTING Repository
 We are **reusing the modular architecture** from Day 8 (the `modules/` and `live/` folders). If you are already tracking your project from the root (as we are), Git tags the **entire repository** at once. You don't need to "navigate" inside the module folder for Git; you just need to ensure your code is committed.
@@ -119,14 +109,30 @@ To make your module look professional for your team:
 
 ### The Sub-Folder "Gotcha" (Double Slash)
 Since your module is inside `day_9/modules/...`, you MUST tell Terraform exactly where to look inside the repo using the **Double Slash (`//`)**:
+Configure your `main.tf` to point to the remote GitHub source using the `?ref=` syntax:
+
+![VS Code Module Source](../../../resources/vscode_module_source.png)
+
 ```hcl
 module "webserver_cluster" {
   # Format: github.com/<user>/<repo>//<folder_path>?ref=<tag>
-  source = "github.com/felexkuria/-terraform-aws-2026//day_9/modules/services/webserver-cluster?ref=v0.0.1"
+  source = "github.com/felexkuria/-terraform-aws-2026//day_9/modules/services/webserver-cluster?ref=day9-v0.0.1"
   
   # ... inputs
 }
 ```
+
+### ✅ Verification: Successful Initialization
+When you run `terraform init`, Terraform will download the module for the first time:
+
+![Terraform Init Day 9](../../../resources/terraform_init_day9.png)
+
+### ⚠️ Troubleshooting: "Module source has changed"
+If you update the `ref` tag in your code but don't re-run `init`, you will see this error:
+
+![Error: Module Source Changed](../../../resources/error_source_changed.png)
+
+**The Fix**: Simply run `terraform init` again to download the new version.
 
 ---
 
@@ -198,3 +204,28 @@ Avoid modules that create "global" resources (like an IAM Role with a hardcoded 
 You have now transitioned from "Terraform Beginner" to "Infrastructure Architect." You are no longer just writing code; you are managing a **lifecycle**.
 
 #30DayTerraformChallenge #IaC #DevOps #Versioning #Aesthetics
+
+---
+
+## 🏆 Proof of Work (POW)
+
+### Successful GitHub Versioning
+![Terraform Init Success V0.0.1](../../../resources/terraform_init_success_v001.png)
+
+---
+
+## 📊 Semantic Versioning (SemVer) 101
+
+Is your tag `day9-v0.0.1` a "Semantic Version"? **Almost!**
+
+SemVer (Semantic Versioning 2.0.0) follows the `MAJOR.MINOR.PATCH` format:
+- **Major (X.0.0)**: Breaking changes (e.g., removing a required variable).
+- **Minor (0.X.0)**: Adding new features (e.g., adding an optional `instance_type` toggle).
+- **Patch (0.0.X)**: Bug fixes (e.g., fixing a typo in your `user_data` script).
+
+### Analysis of your tag: `day9-v0.0.1`
+- **The Prefix (`day9-`)**: Strictly speaking, SemVer doesn't include prefixes. However, in **Monorepos** (like yours), using a prefix is a **Best Practice**. It tells your team *which* module is being versioned.
+- **The Version (`0.0.1`)**: This part is perfectly SemVer-compliant.
+- **The Extension (`-dev`)**: In `v0.0.1-dev`, the `-dev` is what SemVer calls a **Pre-release Identifier**. This is also perfectly compliant and tells the world this isn't the final stable version.
+
+**The Pro Verdict:** Your tagging strategy is excellent for a multi-day learning repo. It keeps your code organized and follows the spirit of industry standards.

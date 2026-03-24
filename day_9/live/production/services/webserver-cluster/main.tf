@@ -1,9 +1,10 @@
 module "webserver_cluster" {
-  source = "../../../../modules/services/webserver-cluster"
+  # source = "../../../../modules/services/webserver-cluster"
+  source = "github.com/felexkuria/-terraform-aws-2026//day_9/modules/services/webserver-cluster?ref=v0.0.2"
 
   cluster_name  = "webservers-production"
   instance_type = "t2.small"
-  environment = "production"
+  environment = "prod"
   min_size      = 4
   max_size      = 10
 }

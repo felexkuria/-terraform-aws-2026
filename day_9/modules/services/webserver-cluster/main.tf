@@ -44,7 +44,7 @@ user_data = base64encode(<<-EOF
             
             # Write the HTML file to a known location
             mkdir -p /var/www
-            echo "<h1>Hello World from ${var.cluster_name}</h1><p>Region: ${var.region}</p>" > /var/www/index.html
+            echo "<h1>Hello World from ${var.cluster_name}</h1><p>Region: ${var.region} this version 2.0</p>" > /var/www/index.html
             
             # Install busybox if not already present
             sudo apt-get update -y
