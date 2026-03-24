@@ -38,14 +38,30 @@ resource "aws_launch_template" "web_server_lt" {
   # The "Gatekeeper" connection
   vpc_security_group_ids = [aws_security_group.web_server_sg.id]
 
-  user_data = base64encode(<<-EOF
-              #!/bin/bash
-              sudo apt-get update -y
-              sudo apt-get install -y busybox
-              echo "Hello World from ${var.cluster_name} in ${var.region}" > index.html
-              nohup busybox httpd -f -p ${var.port} &
-              EOF
-  )
+ user_data = base64encode(<<-EOF
+            #!/bin/bash
+            # Prevent interactive prompts
+            export DEBIAN_FRONTEND=noninteractive
+            
+            # Write the HTML file to a known location
+            mkdir -p /var/www
+            echo "<h1>Hello World from ${var.cluster_name}</h1><p>Region: ${var.region}</p>" > /var/www/index.html
+            
+            # Install busybox if not already present
+            sudo apt-get update -y
+            sudo apt-get install -y busybox
+            
+            # Start the server (pointing to the correct home directory)
+            nohup busybox httpd -f -p ${var.port} -h /var/www &
+            
+            # Fallback in case busybox fails (using python3 which is built-in)
+            if ! pgrep -x "busybox" > /dev/null; then
+              cd /var/www
+              nohup python3 -m http.server ${var.port} &
+            fi
+            EOF
+)
+
 
   lifecycle {
     create_before_destroy = true
