@@ -3,7 +3,7 @@ module "webserver_cluster" {
 
   cluster_name  = "webservers-production"
   instance_type = "t2.small"
-  environment = "production"
+  environment = "prod"
   min_size      = 4
   max_size      = 10
 }
