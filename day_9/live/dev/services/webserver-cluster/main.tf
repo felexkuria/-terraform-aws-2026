@@ -1,7 +1,8 @@
 module "webserver_cluster" {
   # THE SOURCE: Four steps back to get out of 'live/dev/services/webserver-cluster'
   # and into the 'modules' directory.
-  source = "../../../../modules/services/webserver-cluster"
+  # source = "../../../../modules/services/webserver-cluster"
+  source = "github.com/felexkuria/-terraform-aws-2026//day_9/modules/services/webserver-cluster?ref=v0.0.1"
 
   cluster_name  = "webservers-dev"
   instance_type = "t3.small"
