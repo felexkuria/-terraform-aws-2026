@@ -5,6 +5,11 @@ provider "aws" {
 
 
 
+
+locals {
+  instance_type = var.environment == "prod" ? "t2.medium" : "t2.micro"
+}
+
 resource "aws_security_group" "web_server_sg" {
    # DYNAMIC NAME: Prevents name collisions in the VPC
   name = "${var.cluster_name}-${var.environment}-alb-sg"
@@ -33,7 +38,7 @@ resource "aws_security_group" "web_server_sg" {
 resource "aws_launch_template" "web_server_lt" {
   name_prefix   = "terraform-lt-"
   image_id      = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
+  instance_type = local.instance_type
 
   # The "Gatekeeper" connection
   vpc_security_group_ids = [aws_security_group.web_server_sg.id]
@@ -85,6 +90,15 @@ resource "aws_autoscaling_group" "web_server_asg" {
     strategy = "Rolling"
     preferences {
       min_healthy_percentage = 60
+    }
+  }
+
+  dynamic "tag" {
+    for_each = var.custom_tags
+    content {
+      key                 = tag.key
+      value               = tag.value
+      propagate_at_launch = true
     }
   }
 
@@ -153,4 +167,27 @@ resource "aws_lb_listener_rule" "asg" {
 resource "aws_autoscaling_attachment" "asg_attachment_bar" {
   autoscaling_group_name = aws_autoscaling_group.web_server_asg.id
   lb_target_group_arn    = aws_lb_target_group.asg.arn
+}
+
+# Day 10 Refactor: Conditionals
+resource "aws_autoscaling_schedule" "scale_out_during_business_hours" {
+  count = var.environment == "prod" ? 1 : 0
+
+  scheduled_action_name  = "scale-out-during-business-hours"
+  min_size               = 2
+  max_size               = 10
+  desired_capacity       = 10
+  recurrence             = "0 9 * * *"
+  autoscaling_group_name = aws_autoscaling_group.web_server_asg.name
+}
+
+resource "aws_autoscaling_schedule" "scale_in_at_night" {
+  count = var.environment == "prod" ? 1 : 0
+
+  scheduled_action_name  = "scale-in-at-night"
+  min_size               = 2
+  max_size               = 10
+  desired_capacity       = 2
+  recurrence             = "0 17 * * *"
+  autoscaling_group_name = aws_autoscaling_group.web_server_asg.name
 }
