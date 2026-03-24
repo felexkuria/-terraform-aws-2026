@@ -7,7 +7,7 @@ provider "aws" {
 
 resource "aws_security_group" "web_server_sg" {
    # DYNAMIC NAME: Prevents name collisions in the VPC
-  name = "${var.cluster_name}-alb-sg"
+  name = "${var.cluster_name}-${var.environment}-alb-sg"
    # Rule 1: Allow the World to talk to the ALB on Port 80
   ingress {
     from_port   = 80
@@ -55,7 +55,7 @@ resource "aws_launch_template" "web_server_lt" {
 
 resource "aws_autoscaling_group" "web_server_asg" {
   # We now point to the "Launch Template" block
-  name                 = "${var.cluster_name}-asg"
+  name                 = "${var.cluster_name}-${var.environment}-asg"
   launch_template {
     id      = aws_launch_template.web_server_lt.id
     version = "$Latest" # Always use the most recent version of the template
@@ -76,7 +76,7 @@ resource "aws_autoscaling_group" "web_server_asg" {
 
   tag {
     key                 = "Name"
-    value               = "${var.cluster_name}-asg"
+    value               = "${var.cluster_name}-${var.environment}-asg"
     propagate_at_launch = true
   }
 }
@@ -103,7 +103,7 @@ resource "aws_lb_listener" "http" {
   }
 }
 resource "aws_lb_target_group" "asg" {
-  name     = "terraform-asg-example"
+  name     = "${var.cluster_name}-${var.environment}-asg"
   port     = var.port # Your 8080 port from Day 4
   protocol = "HTTP"
   vpc_id   = data.aws_vpc.default.id

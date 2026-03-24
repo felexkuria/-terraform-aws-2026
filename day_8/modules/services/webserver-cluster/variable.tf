@@ -44,6 +44,10 @@ variable "cidr_blocks" {
   type = list(string)
   default = ["0.0.0.0/0"]
 }
+variable "environment" {
+  type = string
+  description = "The deployment environment (dev, stage, prod)"
+}
 # variable "instance_type" {
 #   type = string
 #   default = "t3.micro"
