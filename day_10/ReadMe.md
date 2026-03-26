@@ -116,7 +116,7 @@ terraform plan
 
 ***
 
-## ✅ Your Graduation Checklist
+## ✅ Your  Checklist
 - [x] Initialized the backend with `terraform init`.
 - [x] Verified code structure with `terraform validate`.
 - [x] Pre-checked the loops and logic with `terraform plan`.

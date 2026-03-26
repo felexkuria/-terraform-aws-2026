@@ -12,7 +12,7 @@ variable "user_names_list" {
 
 resource "aws_iam_user" "count_list_example" {
   count = length(var.user_names_list)
-  name  = var.user_names_list[count.index]
+  name  = "count-${var.user_names_list[count.index]}"
 }
 
 # 3. Using for_each with a set (Safer)
@@ -23,7 +23,7 @@ variable "user_names_set" {
 
 resource "aws_iam_user" "foreach_example" {
   for_each = var.user_names_set
-  name     = each.value
+  name     = "foreach-${each.value}"
 }
 
 # 4. Using for_each with a map (Rich Data)
@@ -40,7 +40,7 @@ variable "users_map" {
 
 resource "aws_iam_user" "foreach_map_example" {
   for_each = var.users_map
-  name     = each.key
+  name     = "map-${each.key}"
   tags = {
     Department = each.value.department
     Admin      = each.value.admin
