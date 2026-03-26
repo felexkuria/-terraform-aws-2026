@@ -9,11 +9,16 @@ Before we write logic, we need a place to put it! In Terraform, your **Entry Poi
 
 Think of `main.tf` like the `main` function in C or Java. It is where you define your primary resources. For Day 11, you should also have:
 - `variables.tf`: To define your "switches" (Input Variables).
+- `data.tf`: To externalize your lookups (AMI, existing VPCs).
 - `outputs.tf`: To show your results.
-- `locals.tf` (Optional): To store your conditional logic (though you can also put this inside `main.tf`!).
+- `locals.tf`: To store your "Brain" (Conditional logic).
+
+## 🔒 Step 0.1: The Vault (S3 Backend)
+We don't store state on our laptops anymore! We use an **S3 Bucket** to keep our infrastructure's "source of truth" safe and centralized. Review the `terraform` block in `main.tf` to see how we connect to the vault.
 
 > **Starter Templates:** I've provided the followings "skeleton" files to get you started:
 > - [main.tf](file:///Users/felexirungu/Downloads/ProjectLevi/Terraform/terraform-aws-2026/day_11/main.tf): The core logic (AWS provider, VPCs, EC2 instances).
+> - [data.tf](file:///Users/felexirungu/Downloads/ProjectLevi/Terraform/terraform-aws-2026/day_11/data.tf): The lookup center for AMIs and VPCs.
 > - [variables.tf](file:///Users/felexirungu/Downloads/ProjectLevi/Terraform/terraform-aws-2026/day_11/variables.tf): Your control panel with validation blocks.
 > - [locals.tf](file:///Users/felexirungu/Downloads/ProjectLevi/Terraform/terraform-aws-2026/day_11/locals.tf): The "Brain" where your ternary logic lives.
 > - [outputs.tf](file:///Users/felexirungu/Downloads/ProjectLevi/Terraform/terraform-aws-2026/day_11/outputs.tf): Safe ways to view your resources.
@@ -57,7 +62,7 @@ Don't scatter logic everywhere! Use `locals.tf` to keep your "brain" in one plac
 locals {
   is_production = var.environment == "production"
 
-  instance_type = local.is_production ? "t2.medium" : "t2.micro"
+  instance_type = local.is_production ? "t3.small" : "t3.micro"
   min_size      = local.is_production ? 3 : 1
   max_size      = local.is_production ? 10 : 3
 }

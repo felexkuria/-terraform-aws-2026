@@ -4,7 +4,7 @@ locals {
   # Logic happens here!
   is_production = var.environment == "production"
 
-  instance_type = local.is_production ? "t2.medium" : "t2.micro"
+  instance_type = local.is_production ? "t3.small" : "t3.micro"
   min_size      = local.is_production ? 3 : 1
   max_size      = local.is_production ? 10 : 3
 

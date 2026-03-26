@@ -4,14 +4,18 @@
 provider "aws" {
   region = var.aws_region
 }
-
-# 2. Conditional Data Source: Use existing or nothing
-data "aws_vpc" "existing" {
-  count = var.use_existing_vpc ? 1 : 0
-  tags = {
-    Name = "existing-vpc" # Make sure this VPC exists or adjust the tag!
+terraform {
+  backend "s3" {
+    bucket       = "terraform-state-bucket-2026-felexirunguvault"
+    key          = "day-11/terraform.tfstate"
+    region       = "us-east-1"
+    encrypt      = true
+    use_lockfile = true
   }
 }
+
+
+
 
 # 3. Conditional Resource: Create new VPC if NOT using existing
 resource "aws_vpc" "new" {
@@ -22,7 +26,7 @@ resource "aws_vpc" "new" {
 
 # 4. EC2 Instance using conditional locals
 resource "aws_instance" "example" {
-  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2 (Double check your region's AMI!)
+  ami           = data.aws_ami.amazon_linux.id # Amazon Linux 2 (Double check your region's AMI!)
   instance_type = local.instance_type
   
   tags = merge(local.common_tags, { Name = "web-server-${var.environment}" })
