@@ -115,10 +115,33 @@ Switching versions becomes a single API call by changing the `active_environment
 
 ---
 
+## 7. Troubleshooting: State Lock Errors
+
+### The Challenge: "Error acquiring the state lock"
+When using a remote backend (like S3 with DynamoDB), Terraform locks the state file during operations to prevent concurrent modifications. If a process is interrupted (e.g., via `Ctrl+C` or a network drop), the lock may remain "active" in S3/DynamoDB even though the process has ended.
+
+### Step-by-Step Solution:
+1.  **Read the Error Output**: Locate the `Lock Info` section in your terminal error. It will look like this:
+    ```text
+    │ Lock Info:
+    │   ID:        c84ca427-388b-ef19-77dc-00b516af6cf8  <-- COPY THIS ID
+    │   Path:      terraform.tfstate
+    │   Operation: OperationTypeApply
+    ```
+2.  **Confirm No Active Processes**: Check your terminal to ensure no other `terraform` commands are currently running.
+3.  **Run the Unlock Command**: Use the `force-unlock` command with the ID you copied:
+    ```bash
+    terraform force-unlock <LOCK_ID>
+    ```
+4.  **Resume**: You can now safely run `terraform apply` or `terraform destroy` again.
+
+---
+
 ## Summary of Challenges Fixed
 - **Unexpected "path" attribute**: Resolved by moving logic to listener rules.
 - **ALB Naming Violations**: Underscores removed for AWS compatibility.
 - **502 Bad Gateway**: App server started in `user_data`.
 - **Duplicate Security Group Errors**: Fixed with `name_prefix`.
+- **Dangling State Locks**: Resolved using `terraform force-unlock` after process interruptions.
 
 *Happy Deploying!*
