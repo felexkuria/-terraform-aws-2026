@@ -1,4 +1,4 @@
-# 🌐 Day 14: This is Multi-Region Orchestration
+# 🌎 Day 14: Multi-Region & Multi-Account Orchestration
 
 Suppose for a moment that you have a problem. You want your application to be everywhere. You want it in the East. You want it in the West. You want it to be **High Availability**. But how do you tell one computer to manage two different geographic locations—or even two different AWS accounts—at the exact same time without getting confused?
 
