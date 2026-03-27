@@ -151,6 +151,8 @@ resource "aws_autoscaling_group" "web_server_asg" {
     version = "$Latest"
   }
   
+  health_check_type = "ELB"
+  
   # Use the Target Group based on the active environment
   target_group_arns = [var.active_environment == "blue" ? aws_lb_target_group.web_server_tg_blue.arn : aws_lb_target_group.web_server_tg_green.arn]
 
