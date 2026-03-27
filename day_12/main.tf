@@ -119,6 +119,10 @@ resource "aws_lb_target_group" "web_server_tg_blue" {
     healthy_threshold = 2
     unhealthy_threshold = 2
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_lb_target_group" "web_server_tg_green" {
@@ -136,6 +140,10 @@ resource "aws_lb_target_group" "web_server_tg_green" {
     timeout = 3
     healthy_threshold = 2
     unhealthy_threshold = 2
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
@@ -170,8 +178,9 @@ resource "aws_autoscaling_group" "web_server_asg" {
 # Step 9: Use random_id to handle ASG replacement
 resource "random_id" "asg_id" {
   keepers = {
-    # Generate a new ID whenever the launch template changes
+    # Generate a new ID whenever the launch template OR the environment changes
     lt_id = aws_launch_template.web_server_lt.default_version
+    env   = var.active_environment
   }
   byte_length = 4
 }
@@ -187,13 +196,14 @@ resource "aws_autoscaling_policy" "web_server_asg_policy" {
       predefined_metric_type = "ASGAverageCPUUtilization"
     }
   }
+  
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 #Step 10 register instances to target group
-
-resource "aws_autoscaling_attachment" "asg_attachment" {
-  # Which Agency are we watching?
-  autoscaling_group_name = aws_autoscaling_group.web_server_asg.id
-
-  # Where are we sending the new hires?
-  lb_target_group_arn    = var.active_environment == "blue" ? aws_lb_target_group.web_server_tg_blue.arn : aws_lb_target_group.web_server_tg_green.arn
-}
+# (Redundant with target_group_arns in aws_autoscaling_group)
+# resource "aws_autoscaling_attachment" "asg_attachment" {
+#   autoscaling_group_name = aws_autoscaling_group.web_server_asg.id
+#   lb_target_group_arn    = var.active_environment == "blue" ? aws_lb_target_group.web_server_tg_blue.arn : aws_lb_target_group.web_server_tg_green.arn
+# }
