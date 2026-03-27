@@ -153,6 +153,7 @@ resource "aws_autoscaling_group" "web_server_asg" {
   desired_capacity = 2
   max_size         = 5
   min_size         = 1
+  min_elb_capacity = 2
   vpc_zone_identifier = data.aws_subnets.default.ids
   launch_template {
     id = aws_launch_template.web_server_lt.id
