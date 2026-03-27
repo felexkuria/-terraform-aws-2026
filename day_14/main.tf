@@ -52,7 +52,7 @@ data "aws_ami" "ubuntu_cali" {
 # 5. Instance in Ohio (Uses Default Provider)
 resource "aws_instance" "east_server" {
   ami           = data.aws_ami.ubuntu_ohio.id
-  instance_type = "t2.micro"
+  instance_type = var.instance_type
   tags          = { Name = "Malan-East" }
 }
 
@@ -60,7 +60,7 @@ resource "aws_instance" "east_server" {
 resource "aws_instance" "west_server" {
   provider      = aws.california
   ami           = data.aws_ami.ubuntu_cali.id
-  instance_type = "t2.micro"
+  instance_type = var.instance_type
   tags          = { Name = "Malan-West" }
 }
 
