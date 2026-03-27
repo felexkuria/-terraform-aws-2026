@@ -13,35 +13,63 @@ Our infrastructure consists of several interconnected components:
 3.  **Launch Template**: The blueprint for our servers, defining the AMI, instance type, security groups, and user data.
 4.  **Autoscaling Group (ASG)**: The manager of our server fleet. It ensures the desired number of instances are running and integrates with the Target Group.
 
-## Achieving Zero-Downtime
+## Challenges & Solutions
 
-The "magic" of zero-downtime in this setup comes from three key configurations:
+During the development of this infrastructure, we encountered several common Terraform and AWS pitfalls. Here is how we solved them:
 
-### 1. `create_before_destroy`
-Inside our `aws_launch_template`, we use a `lifecycle` block:
+1.  **Syntax Error: Unexpected attribute "path"**
+    - **Problem**: Attempting to set `path` directly on `aws_lb_listener`.
+    - **Solution**: Removed the invalid attribute. Listener rules or fixed responses should handle paths, not the listener itself.
+
+2.  **ALB Naming Violations**
+    - **Problem**: Using underscores in Load Balancer and Target Group names (e.g., `web_server_lb`).
+    - **Solution**: Renamed resources to use hyphens (`web-server-lb`), as AWS ALB/TG names only allow alphanumeric characters and hyphens.
+
+3.  **Invalid Resource Type: `aws_listener_rule`**
+    - **Problem**: Using the wrong resource name.
+    - **Solution**: Corrected to `aws_lb_listener_rule`.
+
+4.  **502 Bad Gateway**
+    - **Problem**: The ALB returned a 502 error because the backend instances weren't serving traffic. The `user_data` script created an `index.html` but didn't start a web server.
+    - **Solution**: Updated `user_data` to start a server using `python3 -m http.server`.
+
+5.  **Duplicate Security Group Error**
+    - **Problem**: `terraform apply` failed because a security group with the same name already existed during a resource replacement.
+    - **Solution**: Switched from `name` to `name_prefix` to ensure unique names during "create before destroy" operations.
+
+---
+
+## Step-by-Step Guide to Zero-Downtime Deployment
+*Based on Terraform: Up & Running (Chapter 5)*
+
+To achieve a truly zero-downtime deployment where new instances are brought up before old ones are removed, follow these steps:
+
+### Step 1: Use `create_before_destroy`
+In your **Launch Template** or **Launch Configuration**, always set the `create_before_destroy` lifecycle rule to `true`. This ensures Terraform doesn't leave you without a template during an update.
+
+### Step 2: Force ASG Replacement
+Historically, Brikman suggests embedding the Launch Template's name or ID into the **Autoscaling Group's name**:
 ```hcl
-lifecycle {
-  create_before_destroy = true
+resource "aws_autoscaling_group" "example" {
+  name = "web-server-asg-${aws_launch_template.example.latest_version}"
+  # ...
 }
 ```
-This ensures that when we update the Launch Template, Terraform will create the new version before destroying the old one.
+This forces Terraform to create an entirely new ASG when the Launch Template changes, rather than updating the existing one in place.
 
-### 2. ASG Instance Refresh
-When the Launch Template changes, the ASG needs to roll out the new instances. By using `min_size` and `desired_capacity` greater than 1, and linking to the ALB, the ASG can bring up new instances, wait for them to pass health checks, and then terminate the old ones.
+### Step 3: Configure `min_elb_capacity`
+Ensure the ASG waits for instances to be healthy in the Load Balancer before considering the deployment successful. In modern Terraform, this is often handled by `wait_for_elb_capacity`.
 
-### 3. ELB Health Checks
-We configure the ASG to use `ELB` health checks:
-```hcl
-health_check_type = "ELB"
-```
-Instead of just checking if the EC2 instance is "on," the ASG now asks the Load Balancer: "Is this instance actually serving web traffic?" This prevents traffic from being sent to an instance that hasn't finished booting up.
+### Step 4: Use ELB Health Checks
+Set `health_check_type = "ELB"` in the ASG. This tells the ASG to use the Load Balancer's health check (which checks if the app is actually responding) rather than just the EC2 status (which only checks if the VM is on).
 
-## How to Use
+### Step 5: Clean Up
+Because of `create_before_destroy`, Terraform will:
+1.  Create the new ASG.
+2.  Wait for the new instances to be healthy.
+3.  Terminate the old ASG and its instances.
 
-1.  **Initialize**: Run `terraform init` to set up the S3 backend and providers.
-2.  **Plan**: Run `terraform plan` to see the infrastructure that will be created.
-3.  **Apply**: Run `terraform apply` to deploy the stack.
-4.  **Verify**: Access the `web_server_lb_dns_name` output in your browser.
+This "Blue-Green" approach within a single Terraform module ensures your users never see a 404 or a timeout.
 
 ## Summary of Files
 

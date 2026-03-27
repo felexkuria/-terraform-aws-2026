@@ -19,9 +19,10 @@ resource "aws_launch_template" "web_server_lt" {
 #   key_name = "web_server_key"
   vpc_security_group_ids = [aws_security_group.web_server_sg.id]
   user_data = base64encode(<<-EOF
-  #!/bin/bash
-  echo "<h1>Hello World from Terraform ${var.instance_type}</h1>" > index.html
-  EOF
+              #!/bin/bash
+              echo "<h1>Hello World from Terraform ${var.instance_type}</h1>" > index.html
+              nohup python3 -m http.server ${var.port_tcp} &
+              EOF
   )
   lifecycle {
     create_before_destroy = true
