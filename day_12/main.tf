@@ -97,23 +97,42 @@ resource "aws_lb_listener_rule" "web_server_listener_rule" {
   }
   
   action {
-    type = "forward"
-    target_group_arn = aws_lb_target_group.web_server_tg.arn
+    type             = "forward"
+    target_group_arn = var.active_environment == "blue" ? aws_lb_target_group.web_server_tg_blue.arn : aws_lb_target_group.web_server_tg_green.arn
   }
 }
 #Step 7 create target group
-resource "aws_lb_target_group" "web_server_tg" {
-  name = "web-server-tg"
-  port=var.port_tcp
-  protocol=var.protocol_http
-  vpc_id = data.aws_vpc.default.id
+#Step 7: Create Blue and Green Target Groups
+resource "aws_lb_target_group" "web_server_tg_blue" {
+  name     = "web-server-tg-blue"
+  port     = var.port_tcp
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.default.id
   target_type = "instance"
+
   health_check {
-    enabled = true
     path = "/"
+    protocol = "HTTP"
     matcher = "200"
     interval = 15
-    protocol = var.protocol_http
+    timeout = 3
+    healthy_threshold = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_target_group" "web_server_tg_green" {
+  name     = "web-server-tg-green"
+  port     = var.port_tcp
+  protocol = "HTTP"
+  vpc_id   = data.aws_vpc.default.id
+  target_type = "instance"
+
+  health_check {
+    path = "/"
+    protocol = "HTTP"
+    matcher = "200"
+    interval = 15
     timeout = 3
     healthy_threshold = 2
     unhealthy_threshold = 2
@@ -122,21 +141,37 @@ resource "aws_lb_target_group" "web_server_tg" {
 
 #Step 8 create asg
 resource "aws_autoscaling_group" "web_server_asg" {
-  name = "web_server_asg"
+  name_prefix     = "web-server-asg-${random_id.asg_id.hex}-"
   desired_capacity = 2
-  max_size = 5
-  min_size = 1
+  max_size         = 5
+  min_size         = 1
   vpc_zone_identifier = data.aws_subnets.default.ids
   launch_template {
     id = aws_launch_template.web_server_lt.id
     version = "$Latest"
   }
-  target_group_arns = [aws_lb_target_group.web_server_tg.arn]
+  
+  # Use the Target Group based on the active environment
+  target_group_arns = [var.active_environment == "blue" ? aws_lb_target_group.web_server_tg_blue.arn : aws_lb_target_group.web_server_tg_green.arn]
+
   tag {
     key = "Name"
     value = "web_server_asg"
     propagate_at_launch = true
   }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Step 9: Use random_id to handle ASG replacement
+resource "random_id" "asg_id" {
+  keepers = {
+    # Generate a new ID whenever the launch template changes
+    lt_id = aws_launch_template.web_server_lt.default_version
+  }
+  byte_length = 4
 }
 
 #Step 9 create scaling policy
@@ -158,5 +193,5 @@ resource "aws_autoscaling_attachment" "asg_attachment" {
   autoscaling_group_name = aws_autoscaling_group.web_server_asg.id
 
   # Where are we sending the new hires?
-  lb_target_group_arn    = aws_lb_target_group.web_server_tg.arn
+  lb_target_group_arn    = var.active_environment == "blue" ? aws_lb_target_group.web_server_tg_blue.arn : aws_lb_target_group.web_server_tg_green.arn
 }

@@ -28,3 +28,9 @@ variable "port_http" {
   type        = number
   default     = 80
 }
+
+variable "active_environment" {
+  description = "The active environment: blue or green"
+  type        = string
+  default     = "blue"
+}
