@@ -20,7 +20,7 @@ resource "aws_launch_template" "web_server_lt" {
   vpc_security_group_ids = [aws_security_group.web_server_sg.id]
   user_data = base64encode(<<-EOF
               #!/bin/bash
-              echo "<h1>Hello World from Terraform ${var.instance_type} - Version 3</h1>" > index.html
+              echo "<h1>Hello World from Terraform ${var.instance_type} - Version 2 at ${var.active_environment}</h1>" > index.html
               nohup python3 -m http.server ${var.port_tcp} &
               EOF
   )
