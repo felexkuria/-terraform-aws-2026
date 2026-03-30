@@ -4,6 +4,43 @@ OH, THIS IS FANTASTIC! You're asking about orchestrating the modern world with t
 
 ---
 
+## 🛠️ Phase 0: Local Orchestration (Testing the Waters)
+
+Before we launch into the cloud, let's use **Terraform** to orchestrate our infrastructure **locally**. This is an excellent way to test our container configuration without spending a dime in a cloud provider!
+
+In the `local_docker/` folder, we've defined a blueprint that uses a **Docker Provider**. Instead of you typing `docker build -t ...`, Terraform will handle the image creation and container management for you:
+
+```terraform
+# Define the Docker Provider
+terraform {
+  required_providers {
+    docker = { source = "kreuzwerker/docker" }
+  }
+}
+
+# Build and Run our "Beautiful Website" Container
+resource "docker_image" "beautiful_site" {
+  name = "crash_course_app:latest"
+  build { context = "../lab_docker_website" }
+}
+
+resource "docker_container" "beautiful_site_container" {
+  name  = "my-cs50-site"
+  image = docker_image.beautiful_site.image_id
+  ports { internal = 80, external = 8080 }
+}
+```
+
+### 🚀 How to Test Locally:
+1. `cd day_15/local_docker/`
+2. `terraform init`
+3. `terraform apply`
+4. Visit `localhost:8080`!
+
+**If it works here, it’s ready for the cloud!**
+
+---
+
 ## The Grand Vision: Docker & Terraform
 
 First, let's just *marvel* at what we're talking about here.
@@ -99,9 +136,24 @@ resource "aws_instance" "docker_host" {
 
 ### 🚀 The `user_data` Symphony
 Inside `main.tf`, you'll see a massive block of shell commands. This is the **Bootstrapper**. When the server first wakes up in the AWS data center, it automatically:
-1.  **Installs Docker**.
-2.  **Re-creates your beautiful website files** (`index.html`, `style.css`, `Dockerfile`) directly on the server's hard drive.
-3.  **Builds and Launches the container**.
+
+```bash
+# 1. Install Docker
+sudo apt-get update -y && sudo apt-get install -y docker.io
+
+# 2. Re-create the "Beautiful Website" files
+cat << 'INDEX' > index.html
+<!-- HTML structure here -->
+INDEX
+
+cat << 'CSS' > style.css
+/* CSS aesthetics here */
+CSS
+
+# 3. Build and Launch the container
+sudo docker build -t crash_course_app .
+sudo docker run -d -p 80:80 --name my-cs50-site crash_course_app
+```
 
 By the time you get the IP address, the entire stack is already running!
 

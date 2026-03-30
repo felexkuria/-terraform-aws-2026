@@ -357,8 +357,8 @@ resource "aws_instance" "docker_host" {
               DOCKER
 
               # Execute the "Final Symphony": Build and Run in the cloud!
-              sudo docker build -t cloud-site .
-              sudo docker run -d -p 80:80 --name cs50-cloud-container cloud-site
+              sudo docker build -t crash_course_app .
+              sudo docker run -d -p 80:80 --name my-cs50-site crash_course_app
               EOF
 
   tags = {
