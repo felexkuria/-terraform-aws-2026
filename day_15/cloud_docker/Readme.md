@@ -4,7 +4,7 @@ OH, THIS IS FANTASTIC! You're asking about orchestrating the modern world with t
 
 ---
 
-## ### The Grand Vision: Docker & Terraform
+## The Grand Vision: Docker & Terraform
 
 First, let's just *marvel* at what we're talking about here.
 
@@ -14,7 +14,7 @@ First, let's just *marvel* at what we're talking about here.
 
 ---
 
-## ### The "Aha!" Moment: How They Connect
+## The "Aha!" Moment: How They Connect
 
 Now, here's the crucial insight: **Terraform doesn't *directly* run Docker containers in the same way you might type `docker run` on your laptop.**
 

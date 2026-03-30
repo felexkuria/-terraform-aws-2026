@@ -1,82 +1,68 @@
 # --- Part 2: The Cloud Orchestra (Terraform) ---
 
 # --- Provider Configuration ---
-# We tell Terraform we want to work with AWS.
+# Tell Terraform we want to work with AWS and which region.
+# This is like telling our architect which country/state to build in!
 provider "aws" {
   region = "us-east-1" # Feel free to change this to your preferred region!
 }
 
-# --- Data Source: Latest Ubuntu AMI ---
-# Instead of hardcoding an ID, we ask AWS for the latest Ubuntu 22.04 LTS.
-data "aws_ami" "ubuntu" {
-  most_recent = true
-  owners      = ["099720109477"] # Canonical (Ubuntu)
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-# --- Security Group (The Digital Walls) ---
-# We need to allow HTTP traffic (port 80) and SSH (port 22).
+# --- Security Group (Firewall Rules) ---
+# This is like defining the "doors and windows" of our house.
+# We want to allow web traffic (HTTP on port 80) and SSH (port 22) from anywhere.
 resource "aws_security_group" "web_sg" {
-  name        = "cs50-lab-sg"
+  name        = "web-server-security-group"
   description = "Allow HTTP and SSH traffic"
 
-  ingress {
+  ingress { # Incoming rules (HTTP)
     from_port   = 80
     to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] # Allow from all IP addresses
+  }
+
+  ingress { # Incoming rules (SSH for debugging)
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # For learning, we allow SSH from anywhere. In production, be restrictive!
-  }
-
-  egress {
+  egress { # Outgoing rules (allow all outbound traffic)
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "-1" # -1 means all protocols
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   tags = {
-    Name = "CS50-Web-SG"
+    Name = "WebSecurityGroup"
   }
 }
 
-# --- EC2 Instance (The Cloud Server) ---
-resource "aws_instance" "app_server" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+# --- EC2 Instance (Our Server!) ---
+# This is our actual server, the "house" where Docker will live!
+resource "aws_instance" "docker_host" {
+  ami           = "ami-053b0d53c279acc90" # Ubuntu 22.04 LTS (HVM) in us-east-1
+  instance_type = "t2.micro"           # A small, cost-effective instance type.
 
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
+  security_groups = [aws_security_group.web_sg.name] # Attach our security group
 
   # --- THE MAGIC user_data SCRIPT! ---
-  # This script runs ONCE when the server boots up.
+  # This is the "instructions" we give to the server *as it's being launched*.
+  # We are combining the root README instructions with our Beautiful Website logic!
   user_data = <<-EOF
               #!/bin/bash
-              # 1. Update and Install Docker
-              apt-get update -y
-              apt-get install -y docker.io
-              systemctl start docker
-              systemctl enable docker
+              sudo apt-get update -y
+              sudo apt-get install -y docker.io # Install Docker
+              sudo systemctl start docker
+              sudo systemctl enable docker
 
-              # 2. Create a folder for our application
+              # Create a folder for our application
               mkdir -p /home/ubuntu/app
               cd /home/ubuntu/app
 
-              # 3. Re-create our "Beautiful Website" files
+              # Re-create our "Beautiful Website" files
               cat << 'INDEX' > index.html
               <!DOCTYPE html>
               <html lang="en">
@@ -373,18 +359,19 @@ resource "aws_instance" "app_server" {
               CMD ["nginx", "-g", "daemon off;"]
               DOCKER
 
-              # 4. Build and Run the container in the cloud!
-              docker build -t cloud-site .
-              docker run -d -p 80:80 --name cs50-cloud-container cloud-site
+              # Build and Run the container in the cloud!
+              sudo docker build -t cloud-site .
+              sudo docker run -d -p 80:80 --name cs50-cloud-container cloud-site
               EOF
 
   tags = {
-    Name = "CS50-Docker-Host"
+    Name = "MyDockerHost"
   }
 }
 
-# --- Outputs ---
+# --- Output the Public IP Address ---
+# This is how we'll find our server after Terraform builds it!
 output "public_ip" {
-  description = "The public IP of your Cloud Website!"
-  value       = aws_instance.app_server.public_ip
+  description = "The public IP address of the Docker host."
+  value       = aws_instance.docker_host.public_ip
 }
