@@ -4,7 +4,7 @@
 FROM nginx:alpine
 
 # Metadata: Let's tag this image so we know who built it!
-LABEL maintainer="CS50 Student <student@cs50.harvard.edu>"
+LABEL maintainer=" Felex Rungu engineerfelex@gmail.com"
 
 # --- The Assembly: Copying our Files ---
 # We copy our local index.html and style.css into the container's 
