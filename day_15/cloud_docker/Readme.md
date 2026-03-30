@@ -26,6 +26,87 @@ So, for Terraform to deploy a Docker container, it first needs to build a "house
 
 ---
 
+## 🔬 Deep Dive: The Terraform Anatomy
+
+Before we build in the cloud, let's look at our **blueprint collection**. We've modularized our infrastructure into four distinct files to keep our "master architect" organized:
+
+### 1. `variables.tf`: The Parameters
+Think of this as the "input" to our program. Instead of hardcoding values like the AWS region or instance size, we define them here. This makes our infrastructure **reusable** and **flexible**.
+
+```terraform
+variable "aws_region" {
+  description = "The AWS region to deploy our beautiful website."
+  type        = string
+  default     = "us-east-1"
+}
+
+variable "instance_type" {
+  description = "The size of our cloud server (t2.micro is cost-effective!)."
+  type        = string
+  default     = "t2.micro"
+}
+```
+
+### 2. `data.tf`: The Brain
+Sometimes, we don't want to hardcode an AMI ID that might change tomorrow. Instead, we use a **Data Source** to ask AWS: "What is the latest, most secure version of Ubuntu 22.04?" Terraform "queries" the cloud and brings that information back into our build.
+
+```terraform
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  owners      = ["099720109477"] # Canonical (Ubuntu)
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+}
+```
+
+### 3. `outputs.tf`: The Voice
+Once the infrastructure is built, how do we find it? This file tells Terraform exactly what information to report back to us—in this case, the **Public IP address** of our new server.
+
+```terraform
+output "public_ip" {
+  description = "The public IP address of the Docker host."
+  value       = aws_instance.docker_host.public_ip
+}
+```
+
+### 4. `main.tf`: The Heart
+This is where the actual resources live. We define our **Security Group** (the digital firewall) and our **EC2 Instance** (the actual server).
+
+```terraform
+resource "aws_security_group" "web_sg" {
+  name        = "web-server-security-group"
+  description = "Allow HTTP and SSH traffic"
+
+  ingress { # Incoming HTTP
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  # ... (and egress rules to allow all outbound traffic)
+}
+
+resource "aws_instance" "docker_host" {
+  ami             = data.aws_ami.ubuntu.id
+  instance_type   = var.instance_type
+  security_groups = [aws_security_group.web_sg.name]
+  # ... (user_data script follows)
+}
+```
+
+### 🚀 The `user_data` Symphony
+Inside `main.tf`, you'll see a massive block of shell commands. This is the **Bootstrapper**. When the server first wakes up in the AWS data center, it automatically:
+1.  **Installs Docker**.
+2.  **Re-creates your beautiful website files** (`index.html`, `style.css`, `Dockerfile`) directly on the server's hard drive.
+3.  **Builds and Launches the container**.
+
+By the time you get the IP address, the entire stack is already running!
+
+---
+
 ## 🚀 The Mission: Deploying Your "Beautiful Website"
 
 In this lab, we're taking our **Local Mastery**—that vibrant, glassmorphic landing page we built—and launching it into the global cloud. We'll use Terraform to provision an AWS EC2 instance, install Docker, and automatically serve our masterpiece to the world.

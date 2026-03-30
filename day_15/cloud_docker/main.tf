@@ -1,37 +1,35 @@
-# --- Part 2: The Cloud Orchestra (Terraform) ---
+# --- Part 2: The Cloud Orchestra (Terraform Main) ---
 
 # --- Provider Configuration ---
-# Tell Terraform we want to work with AWS and which region.
-# This is like telling our architect which country/state to build in!
+# Configures the architect to build in our specified region.
 provider "aws" {
-  region = "us-east-1" # Feel free to change this to your preferred region!
+  region = var.aws_region
 }
 
 # --- Security Group (Firewall Rules) ---
-# This is like defining the "doors and windows" of our house.
-# We want to allow web traffic (HTTP on port 80) and SSH (port 22) from anywhere.
+# We define the windows and doors of our digital house.
 resource "aws_security_group" "web_sg" {
   name        = "web-server-security-group"
   description = "Allow HTTP and SSH traffic"
 
-  ingress { # Incoming rules (HTTP)
+  ingress { # Incoming HTTP (Port 80)
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Allow from all IP addresses
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress { # Incoming rules (SSH for debugging)
+  ingress { # Incoming SSH (Port 22) for debugging
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  egress { # Outgoing rules (allow all outbound traffic)
+  egress { # Outgoing traffic (allow everything!)
     from_port   = 0
     to_port     = 0
-    protocol    = "-1" # -1 means all protocols
+    protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -41,16 +39,15 @@ resource "aws_security_group" "web_sg" {
 }
 
 # --- EC2 Instance (Our Server!) ---
-# This is our actual server, the "house" where Docker will live!
+# This is our cloud host, where Docker will live and breathe!
 resource "aws_instance" "docker_host" {
-  ami           = "ami-053b0d53c279acc90" # Ubuntu 22.04 LTS (HVM) in us-east-1
-  instance_type = "t2.micro"           # A small, cost-effective instance type.
+  ami           = data.aws_ami.ubuntu.id # We use the latest Ubuntu identified in data.tf!
+  instance_type = var.instance_type      # Defined in variables.tf!
 
-  security_groups = [aws_security_group.web_sg.name] # Attach our security group
+  security_groups = [aws_security_group.web_sg.name]
 
   # --- THE MAGIC user_data SCRIPT! ---
-  # This is the "instructions" we give to the server *as it's being launched*.
-  # We are combining the root README instructions with our Beautiful Website logic!
+  # This script bootstraps our server into a production-ready machine.
   user_data = <<-EOF
               #!/bin/bash
               sudo apt-get update -y
@@ -58,11 +55,11 @@ resource "aws_instance" "docker_host" {
               sudo systemctl start docker
               sudo systemctl enable docker
 
-              # Create a folder for our application
+              # Prepare the application directory
               mkdir -p /home/ubuntu/app
               cd /home/ubuntu/app
 
-              # Re-create our "Beautiful Website" files
+              # Re-create our "Beautiful Website" files locally on the server
               cat << 'INDEX' > index.html
               <!DOCTYPE html>
               <html lang="en">
@@ -359,7 +356,7 @@ resource "aws_instance" "docker_host" {
               CMD ["nginx", "-g", "daemon off;"]
               DOCKER
 
-              # Build and Run the container in the cloud!
+              # Execute the "Final Symphony": Build and Run in the cloud!
               sudo docker build -t cloud-site .
               sudo docker run -d -p 80:80 --name cs50-cloud-container cloud-site
               EOF
@@ -367,11 +364,4 @@ resource "aws_instance" "docker_host" {
   tags = {
     Name = "MyDockerHost"
   }
-}
-
-# --- Output the Public IP Address ---
-# This is how we'll find our server after Terraform builds it!
-output "public_ip" {
-  description = "The public IP address of the Docker host."
-  value       = aws_instance.docker_host.public_ip
 }
