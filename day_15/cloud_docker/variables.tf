@@ -1,19 +1,19 @@
-# --- Variables: The Parameters of our Infrastructure ---
+# --- Variables: The Parameters of our Orchestration ---
 
-variable "aws_region" {
-  description = "The AWS region to deploy our beautiful website."
-  type        = string
-  default     = "us-east-1"
+variable "external_port" {
+  description = "The local port to access our website (e.g., 8080)."
+  type        = number
+  default     = 8080
 }
 
-variable "instance_type" {
-  description = "The size of our cloud server (t2.micro is cost-effective!)."
+variable "container_name" {
+  description = "The name of our running Docker container."
   type        = string
-  default     = "t2.micro"
+  default     = "my-cs50-site"
 }
 
-variable "ami_id" {
-  description = "The specific ID of the Ubuntu AMI to use."
+variable "image_name" {
+  description = "The name for our Docker image."
   type        = string
-  default     = "ami-053b0d53c279acc90" # Ubuntu 22.04 LTS in us-east-1
+  default     = "crash_course_app"
 }
