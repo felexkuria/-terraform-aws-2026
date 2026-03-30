@@ -110,10 +110,35 @@ Check the **Outputs** in your terminal. You'll see a `website_url`. Visit it in 
 
 ---
 
+## 🧗‍♂️ The Journey: Challenges & Victories
+
+In the real world, things rarely go perfectly on the first try. During this lab, we faced **real-world engineering challenges** and overcame them together:
+
+1.  **The Socket Connection Mystery**: 
+    *   **Challenge**: Terraform couldn't find the Docker daemon (`unix:///var/run/docker.sock`).
+    *   **Solution**: We discovered that Colima users have a specialized "phone line" at `~/.colima/default/docker.sock`. We mapped this in our `variables.tf`, and suddenly, the Architect could talk to the Builder!
+
+2.  **The Container Name Conflict**:
+    *   **Challenge**: Docker shouted: *"That name is already taken!"* because we had a manual container running from our earlier practice.
+    *   **Solution**: We used `docker rm -f my-cs50-site` to clear the site, allowing Terraform to take full ownership of the infrastructure.
+
+3.  **The Central Vault (S3 Backend)**:
+    *   **Success**: We successfully moved our state to the cloud. Now, our progress is encrypted, locked, and safe in an AWS S3 bucket.
+
+---
+
+## 🖼️ Success Gallery: The Final Symphony
+
+Behold the result of our hard work. One command—`terraform apply`—and the entire infrastructure comes to life!
+
+![Terraform Success Screenshot](file:///Users/felexirungu/Downloads/ProjectLevi/Terraform/terraform-aws-2026/day_15/cloud_docker/assets/terraform_success.png)
+
+---
+
 ## 🎓 The Graduation
 You have successfully:
-1.  **Ditched** the manual CLI commands.
-2.  **Automated** the entire Docker lifecycle with Infrastructure as Code.
-3.  **Orchestrated** your local development environment like a pro.
+1.  **Automated** your local development environment.
+2.  **Hardened** your infrastructure with a Remote State Backend.
+3.  **Triumphantly solved** complex configuration challenges.
 
 **This is the modern way to build. This is CS50.**

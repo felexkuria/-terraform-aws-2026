@@ -13,7 +13,10 @@ terraform {
 }
 
 
-provider "docker" {}
+provider "docker" {
+  host = var.docker_host
+}
+
 terraform {
   backend "s3" {
     bucket = "terraform-state-bucket-2026-felexirunguvault"

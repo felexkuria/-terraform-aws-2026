@@ -17,3 +17,9 @@ variable "image_name" {
   type        = string
   default     = "crash_course_app"
 }
+variable "docker_host" {
+  description = "The path to the Docker socket (Crucial for Colima users!)."
+  type        = string
+  default     = "unix:///Users/felexirungu/.colima/default/docker.sock"
+}
+
