@@ -2,28 +2,9 @@
 
 ![Lab Preview](../assets/docker_lab_preview.png)
 
-OH, THIS IS EXCITING! Welcome to a hands-on exploration of the modern cloud's most fundamental building block. Today, we're not just writing code; we're **orchestrating environments**. We're taking a beautiful, modern web application and packaging it so perfectly that it can run anywhere in the world—from your laptop to the most massive data centers on the planet—with just a single command.
+ Today, we're not just writing code; we're **orchestrating environments**. We're taking a beautiful, modern web application and packaging it so perfectly that it can run anywhere in the world—from your laptop to the most massive data centers on the planet—with just a single command.
 
----
 
-## 💪 Challenges & Teachable Moments
-
-In the world of computer science, we often learn more from our **errors** than from our successes. Here are the hurdles we cleared during this lab:
-
-### 1. The Spelling Symphony
-- **Challenge**: We ran into an error trying to `docker buid`. 
-- **The Lesson**: Compilers and CLIs are incredibly precise. A single missing character (**build** vs **buid**) can stop a multi-gigabyte orchestration in its tracks!
-- **Solution**: Careful proofreading and understanding that `-t` is a flag specifically for the `build` command.
-
-### 2. Nouns vs. Verbs (Images vs. Processes)
-- **Challenge**: We tried running `docker images ps`. 
-- **The Lesson**: Docker distinguishes between our "Static Recipes" (**Images**) and our "Running Instances" (**Processes/Containers/PS**). Running them together confused the CLI!
-- **Solution**: Use `docker images` to see your library and `docker ps` to see what is currently alive and breathing.
-
-### 3. Architecture & The M1 Leap
-- **Challenge**: Standard Docker tools can sometimes be heavy or complex on modern Apple Silicon (M1/M2/M3) Macs.
-- **The Lesson**: Modern hardware sometimes requires modern, lightweight alternatives.
-- **Solution**: We integrated **Colima**! A lightweight way to bridge the gap and run our Docker commands seamlessly on Mac Silicon.
 
 ---
 
@@ -78,6 +59,33 @@ We've provided you with three essential files:
 ### 🔬 Deep Dive: The Dockerfile Anatomy
 
 Before we build, let's look *inside* the recipe. Each line in a `Dockerfile` is a command to Docker, telling it how to construct our image, layer by layer.
+```bash
+# --- The Blueprint: Dockerfile ---
+# We start with a base image. Nginx is a high-performance web server.
+# Alpine is a super-small, lightweight Linux distribution.
+FROM nginx:alpine
+
+# Metadata: Let's tag this image so we know who built it!
+LABEL maintainer=" Felex Rungu engineerfelex@gmail.com"
+
+# --- The Assembly: Copying our Files ---
+# We copy our local index.html and style.css into the container's 
+# default directory for serving static content.
+COPY index.html /usr/share/nginx/html/index.html
+COPY style.css /usr/share/nginx/html/style.css
+
+# --- The Logistics: Opening Ports ---
+# Nginx traditionally runs on port 80. We tell Docker that our
+# container intends to listen on this port.
+EXPOSE 80
+
+# --- The Startup: Launching the Server ---
+# This command tells Docker exactly what to execute when the container starts.
+# Nginx will run in the foreground so the container stays alive.
+CMD ["nginx", "-g", "daemon off;"]
+
+
+```
 
 - **`FROM nginx:alpine`**: We aren't building a web server from scratch! We're starting with `nginx` (a high-performance industry standard) running on `alpine` (an incredibly small, efficient Linux distribution). Standing on the shoulders of giants!
   
@@ -147,66 +155,21 @@ docker rm cs50-container
 
 ---
 
-## 🏛️ Part 2: The Cloud Orchestra (Terraform)
+## 💪 Challenges & Teachable Moments
 
-OH, THIS IS THE GRAND FINALE! We've mastered Docker locally. But now, we're going to use **Terraform**—the master architect—to provision an entire server in the AWS cloud and instruct it to run our beautiful website automatically.
+In the world of computer science, we often learn more from our **errors** than from our successes. Here are the hurdles we cleared during this lab:
 
-This is **Infrastructure as Code (IaC)**.
+### 1. The Spelling Symphony
+- **Challenge**: We ran into an error trying to `docker buid`. 
+- **The Lesson**: Compilers and CLIs are incredibly precise. A single missing character (**build** vs **buid**) can stop a multi-gigabyte orchestration in its tracks!
+- **Solution**: Careful proofreading and understanding that `-t` is a flag specifically for the `build` command.
 
-### Step 1: Pre-requisites
+### 2. Nouns vs. Verbs (Images vs. Processes)
+- **Challenge**: We tried running `docker images ps`. 
+- **The Lesson**: Docker distinguishes between our "Static Recipes" (**Images**) and our "Running Instances" (**Processes/Containers/PS**). Running them together confused the CLI!
+- **Solution**: Use `docker images` to see your library and `docker ps` to see what is currently alive and breathing.
 
-To play this part of the symphony, you'll need:
-1.  An **AWS Account**.
-2.  **AWS CLI** configured (`aws configure`).
-3.  **Terraform** installed.
-
-### Step 2: Initialize the Architect
-
-In your terminal, within this same directory, run:
-
-```bash
-terraform init
-```
-
-This tells Terraform to download the necessary "tools" (the AWS provider) to build in the cloud.
-
-### Step 3: The Blueprint (Plan)
-
-Now, ask the architect to show you the blueprints:
-
-```bash
-terraform plan
-```
-
-Read carefully! Terraform will tell you it's going to create a **Security Group** (our digital walls) and an **EC2 Instance** (our cloud server).
-
-### Step 4: Building the Infrastructure
-
-If everything looks correct, let's bring it to life!
-
-```bash
-terraform apply
-```
-
-Type `yes` when prompted. **Wait for the magic to happen.** Terraform is currently communicating with AWS data centers, spinning up a server, installing Docker, and launching your container!
-
----
-
-## 🌐 Step 5: High-Five the Cloud
-
-Once `terraform apply` finishes, it will output a **`public_ip`**. Copy that IP address and paste it into your browser:
-
-`http://[YOUR_PUBLIC_IP]`
-
-**VOILA!** Your beautiful, glassmorphic website is now live on the global internet, served from a Docker container inside an AWS EC2 instance. 
-
----
-
-## 🎓 The Graduation
-
-You have successfully:
-1.  **Crafted** a modern web application.
-2.  **Containerized** it for perfect portability.
-3.  **Orchestrated** its global deployment with Infrastructure as Code.
-
-**This is the modern way to build. This is CS50.**
+### 3. Architecture & The M1 Leap
+- **Challenge**: Standard Docker tools can sometimes be heavy or complex on modern Apple Silicon (M1/M2/M3) Macs.
+- **The Lesson**: Modern hardware sometimes requires modern, lightweight alternatives.
+- **Solution**: We integrated **Colima**! A lightweight way to bridge the gap and run our Docker commands seamlessly on Mac Silicon.
