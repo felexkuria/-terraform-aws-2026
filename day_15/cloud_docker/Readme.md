@@ -142,3 +142,12 @@ You have successfully:
 3.  **Triumphantly solved** complex configuration challenges.
 
 **This is the modern way to build. This is CS50.**
+
+---
+
+## 📚 Further Reading & Resources
+
+Want to dive even deeper into the world of Docker and Terraform? Check out these world-class resources:
+
+*   **[Spacelift: How to Use Terraform with Docker](https://spacelift.io/blog/terraform-docker)** — A comprehensive guide on orchestration best practices.
+*   **[Terraform Docker Provider Documentation](https://registry.terraform.io/providers/kreuzwerker/docker/latest/docs)** — The official blueprint manual for your master orchestrator.
